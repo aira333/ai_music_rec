@@ -1,0 +1,8 @@
+echo "__pycache__/
+*.pyc
+*.pt
+data/processed/
+data/raw/
+checkpoints/*.pt
+checkpoints/*.png
+checkpoints/*.csv" > .gitignore
