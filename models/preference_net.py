@@ -23,13 +23,12 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# ── Constants ─────────────────────────────────────────────────────────────────
+
 AUDIO_DIM   = 9    # feature_extractor.FEATURE_DIM
 CONTEXT_DIM = 9    # rolling mean of last T tracks (same dim as audio)
 INPUT_DIM   = AUDIO_DIM + CONTEXT_DIM   # 18 when context is used
 
 
-# ── Dataset ───────────────────────────────────────────────────────────────────
 class PreferenceDataset(Dataset):
     """
     Wraps a DataFrame of (feature_vec, label) pairs.
@@ -73,7 +72,6 @@ class PreferenceDataset(Dataset):
         return self.features[idx], self.labels[idx]
 
 
-# ── Model ─────────────────────────────────────────────────────────────────────
 class PreferenceNet(nn.Module):
     """
     MLP preference predictor.
@@ -124,7 +122,6 @@ class PreferenceNet(nn.Module):
         return torch.sigmoid(self.net(x)).squeeze(-1)
 
 
-# ── Temporal context tracker ──────────────────────────────────────────────────
 class TemporalContext:
     """
     Maintains a rolling buffer of the last T tracks and returns
@@ -149,8 +146,6 @@ class TemporalContext:
     def reset(self) -> None:
         self.buffer.clear()
 
-
-# ── Trainer ───────────────────────────────────────────────────────────────────
 class PreferenceTrainer:
     """
     Full training loop with train/val split, early stopping, and checkpoint saving.
@@ -180,7 +175,6 @@ class PreferenceTrainer:
         self.checkpoint_dir = checkpoint_dir
         self.history        = {"train_loss": [], "val_loss": [], "val_acc": []}
 
-    # ── Train / val loop ──────────────────────────────────────────────────────
     def fit(
         self,
         dataset:      PreferenceDataset,
@@ -263,7 +257,7 @@ class PreferenceTrainer:
         n = len(loader.dataset)
         return total_loss / n, correct / n
 
-    # ── Inference ─────────────────────────────────────────────────────────────
+    
     @torch.no_grad()
     def predict(self, feature_vec: np.ndarray) -> float:
         """Return preference score ∈ [0, 1] for a single track."""
@@ -271,7 +265,7 @@ class PreferenceTrainer:
         x = torch.tensor(feature_vec, dtype=torch.float32).unsqueeze(0).to(self.device)
         return float(self.model(x).item())
 
-    # ── I/O ───────────────────────────────────────────────────────────────────
+
     def save_checkpoint(self, name: str = "checkpoint.pt") -> Path:
         path = self.checkpoint_dir / name
         torch.save({
@@ -289,14 +283,12 @@ class PreferenceTrainer:
         logger.info(f"Loaded checkpoint from {path}")
 
 
-# ── Quick smoke test ──────────────────────────────────────────────────────────
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
     torch.manual_seed(42)
 
     print("=== PreferenceNet Smoke Test ===\n")
 
-    # Synthetic dataset: 1 000 tracks, random labels
     rng = np.random.default_rng(42)
     n   = 1_000
     vecs   = rng.random((n, AUDIO_DIM)).astype(np.float32)
@@ -320,7 +312,6 @@ if __name__ == "__main__":
     final_acc = history["val_acc"][-1]
     print(f"\nFinal val accuracy: {final_acc:.3f}")
 
-    # Single-track prediction demo
     sample_vec = np.random.rand(INPUT_DIM).astype(np.float32)
     score      = trainer.predict(sample_vec)
     print(f"Preference score for random track: {score:.4f}")

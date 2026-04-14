@@ -138,7 +138,7 @@ def main(epochs: int = 120, lr: float = 3e-4, batch_size: int = 256):
     print(f"  Best val accuracy:  {best_acc:.3f} ({best_acc*100:.1f}%)")
     print(f"  Final val accuracy: {final_acc:.3f} ({final_acc*100:.1f}%)")
     print(f"  Target:             70.0%")
-    print(f"  {'✅ TARGET MET' if best_acc >= 0.70 else '🔄 Try: --lr 0.0001 --epochs 150'}")
+    print(f"  {'TARGET MET' if best_acc >= 0.70 else 'Try: --lr 0.0001 --epochs 150'}")
     print(f"{'='*50}\n")
 
     CKPT_DIR.mkdir(exist_ok=True)
@@ -150,7 +150,7 @@ def main(epochs: int = 120, lr: float = 3e-4, batch_size: int = 256):
         if isinstance(vec, str): vec = ast.literal_eval(vec)
         score = trainer.predict(np.array(vec, dtype=np.float32))
         true  = int(row["label"])
-        print(f"  {'✅' if (score>0.5)==bool(true) else '❌'} {'👍' if score>0.5 else '👎'} "
+        print(f"  {'r' if (score>0.5)==bool(true) else 'w'} {'yes' if score>0.5 else 'no'} "
               f"{score:.3f} | pop={int(row.get('popularity',-1)):3d} | "
               f"{str(row.get('track_genre','?')):<14} | {str(row.get('track_name','?'))[:28]}")
 

@@ -41,8 +41,6 @@ FEATURE_COLS = [
 ]
 FEATURE_DIM = len(FEATURE_COLS)
 
-
-# ── Replay Buffer ─────────────────────────────────────────────────────────────
 class ReplayBuffer:
     def __init__(self, capacity: int = 20_000):
         self.buffer = deque(maxlen=capacity)
@@ -57,8 +55,6 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.buffer)
 
-
-# ── Q-Network (Dueling) ───────────────────────────────────────────────────────
 class QNetwork(nn.Module):
     def __init__(self, state_dim: int, n_actions: int, hidden: int = 256):
         super().__init__()
@@ -82,8 +78,6 @@ class QNetwork(nn.Module):
         A = self.advantage_stream(shared)
         return V + A - A.mean(dim=1, keepdim=True)
 
-
-# ── Music Environment ─────────────────────────────────────────────────────────
 class MusicEnvironment:
     """
     Simulates a user with a specific taste profile.
@@ -204,8 +198,6 @@ class MusicEnvironment:
     def n_actions(self):
         return len(self.candidates) if self.candidates else self.candidate_pool_size
 
-
-# ── Agent ─────────────────────────────────────────────────────────────────────
 class QLearningAgent:
     def __init__(
         self,
@@ -312,8 +304,6 @@ class QLearningAgent:
         self.updates_done = ckpt.get("updates", 0)
         logger.info(f"Checkpoint loaded ← {path}")
 
-
-# ── Training loop ─────────────────────────────────────────────────────────────
 def run_episodes(agent, env, n_episodes, learn=True) -> dict:
     history = {"episode_reward": [], "loss": [], "epsilon": []}
 
@@ -352,7 +342,6 @@ def run_episodes(agent, env, n_episodes, learn=True) -> dict:
     return history
 
 
-# ── Plot ──────────────────────────────────────────────────────────────────────
 def plot_results(rl_hist, rand_hist, save_path):
     def smooth(x, w=20):
         return pd.Series(x).rolling(w, min_periods=1).mean().values
@@ -381,7 +370,6 @@ def plot_results(rl_hist, rand_hist, save_path):
     plt.show()
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
 def main(n_episodes=200, candidate_pool=30):
     if not DATA_PATH.exists():
         raise FileNotFoundError(f"{DATA_PATH} not found.\nRun: python data/load_spotify_dataset.py --source huggingface")
@@ -411,11 +399,9 @@ def main(n_episodes=200, candidate_pool=30):
     rl_avg   = np.mean(rl_hist["episode_reward"][-50:])
     rand_avg = np.mean(rand_hist["episode_reward"])
 
-    # Improvement: DQN reward vs random reward, measured relative to episode length
     ep_len = MusicEnvironment.EPISODE_LEN
     rl_per_step   = rl_avg   / ep_len
     rand_per_step = rand_avg / ep_len
-    # Since random baseline centres near 0, compare absolute improvement
     improvement = ((rl_avg - rand_avg) / (abs(rand_avg) + ep_len * 0.1)) * 100
 
     print(f"\n{'='*55}")
@@ -425,7 +411,7 @@ def main(n_episodes=200, candidate_pool=30):
     print(f"  Random reward/step:            {rand_per_step:+.4f}")
     print(f"  Improvement over random:       {improvement:+.1f}%")
     print(f"  Target: ≥30% improvement")
-    print(f"  {'✅ TARGET MET' if improvement >= 30 else '🔄 Try --episodes 400'}")
+    print(f"  {'TARGET MET' if improvement >= 30 else ' Try --episodes 400'}")
     print(f"{'='*55}\n")
 
     CKPT_DIR.mkdir(exist_ok=True)
